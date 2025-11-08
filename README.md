@@ -1,1 +1,1 @@
-# swara-detector
+# Swara Detector
