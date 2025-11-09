@@ -240,3 +240,85 @@ footer {
     font-size: 2.2rem;
   }
 }
+
+/* Graph Section Styles */
+.graph-section {
+  margin-top: 30px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.graph-container {
+  position: relative;
+  height: 400px;
+  margin: 20px 0;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pitch-graph {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.graph-info {
+  margin-top: 15px;
+  font-size: 0.9rem;
+  opacity: 0.9;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.graph-info p {
+  margin: 8px 0;
+  color: #f39c12;
+}
+
+/* Clear Button */
+.btn-clear {
+  background: #e74c3c !important;
+  margin-top: 10px;
+}
+
+.btn-clear:hover {
+  background: #c0392b !important;
+  transform: translateY(-2px);
+}
+
+/* Recording Status */
+.recording-status {
+  margin: 15px 0;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Button improvements */
+.btn.recording {
+  background: #e74c3c !important;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { background-color: #e74c3c; }
+  50% { background-color: #c0392b; }
+  100% { background-color: #e74c3c; }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .graph-container {
+    height: 300px;
+    padding: 15px;
+  }
+  
+  .graph-section {
+    padding: 15px;
+  }
+}
