@@ -1,68 +1,324 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --primary: #8e44ad;
+  --primary-dark: #6c3483;
+  --secondary: #f39c12;
+  --light: #f8f9fa;
+  --dark: #343a40;
+  --success: #28a745;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: var(--light);
   min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+header {
+  text-align: center;
+  padding: 30px 0;
 }
 
 h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+  font-size: 2.8rem;
+  margin-bottom: 10px;
+  background: linear-gradient(to right, var(--secondary), var(--primary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
+.subtitle {
+  font-size: 1.2rem;
+  opacity: 0.8;
+  margin-bottom: 30px;
+}
+
+.main-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.input-section,
+.output-section {
+  flex: 1;
+  min-width: 300px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.section-title {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: var(--secondary);
+  border-bottom: 2px solid var(--primary);
+  padding-bottom: 10px;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
   font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+input, select {
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.3);
+  color: white;
+  font-size: 1rem;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.frequency-note {
+  margin-top: 5px;
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: var(--secondary);
+}
+
+.btn-secondary:hover {
+  background: #e67e22;
+}
+
+.btn.recording {
+  background: #e74c3c;
+}
+
+.btn.recording:hover {
+  background: #c0392b;
+}
+
+.swara-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.swara-card {
+  flex: 1;
+  min-width: 120px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 15px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.swara-card.active {
+  background: var(--primary);
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(142, 68, 173, 0.4);
+}
+
+.swara-name {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.swara-frequency {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.frequency-display {
+  font-size: 2.5rem;
+  text-align: center;
+  margin: 20px 0;
+  font-weight: bold;
+  color: var(--secondary);
+}
+
+.detected-swaras {
+  margin-top: 30px;
+}
+
+.current-swaras-display {
+  font-size: 1.5rem;
+  text-align: center;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sa-reference {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 15px;
+  margin-top: 20px;
+}
+
+.reference-title {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  color: var(--secondary);
+}
+
+.reference-list {
+  list-style-type: none;
+}
+
+.reference-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reference-list li:last-child {
+  border-bottom: none;
+}
+
+.about-swaras {
+  line-height: 1.6;
+}
+
+footer {
+  text-align: center;
+  padding: 20px;
+  margin-top: 40px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
   }
-  a:hover {
-    color: #747bff;
+  
+  h1 {
+    font-size: 2.2rem;
   }
-  button {
-    background-color: #f9f9f9;
+}
+
+/* Graph Section Styles */
+.graph-section {
+  margin-top: 30px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.graph-container {
+  position: relative;
+  height: 400px;
+  margin: 20px 0;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pitch-graph {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.graph-info {
+  margin-top: 15px;
+  font-size: 0.9rem;
+  opacity: 0.9;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.graph-info p {
+  margin: 8px 0;
+  color: #f39c12;
+}
+
+/* Clear Button */
+.btn-clear {
+  background: #e74c3c !important;
+  margin-top: 10px;
+}
+
+.btn-clear:hover {
+  background: #c0392b !important;
+  transform: translateY(-2px);
+}
+
+/* Recording Status */
+.recording-status {
+  margin: 15px 0;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Button improvements */
+.btn.recording {
+  background: #e74c3c !important;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { background-color: #e74c3c; }
+  50% { background-color: #c0392b; }
+  100% { background-color: #e74c3c; }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .graph-container {
+    height: 300px;
+    padding: 15px;
+  }
+  
+  .graph-section {
+    padding: 15px;
   }
 }
