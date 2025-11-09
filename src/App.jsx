@@ -509,7 +509,7 @@ function App() {
       </div>
       
       <footer>
-        <p>Swara Detector &copy; 2023 | Hackathon Project</p>
+        <p>Swara Detector &copy; 2025 | All Rights Reserved</p>
       </footer>
     </div>
   );
