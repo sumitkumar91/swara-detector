@@ -2,6 +2,8 @@
 
 **Real-time Indian classical music pitch detection in the browser.**
 
+**[View on Devpost](https://devpost.com/software/swara-detector)**
+
 ## Inspiration
 
 For the inexperienced learner, understanding the difference between different notes is very difficult. By creating software that can help identify different notes, we give learners who may not have access to professional vocal or instrumental training the opportunity to develop the skills they need to succeed in music.
