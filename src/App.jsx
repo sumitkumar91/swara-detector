@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
-import RagaWordle from './RagaWordle';
 
 function App() {
-  const [page, setPage] = useState('detector');
   const [baseFrequency, setBaseFrequency] = useState(240);
   const [selectedRaga, setSelectedRaga] = useState('none');
   const [currentFrequency, setCurrentFrequency] = useState('-- Hz');
@@ -182,28 +180,6 @@ function App() {
 
   return (
     <div className="container">
-      <nav className="app-nav">
-        <span className="nav-brand">🎵 Swara Tools</span>
-        <div className="nav-links">
-          <button
-            className={`nav-btn ${page === 'detector' ? 'nav-active' : ''}`}
-            onClick={() => setPage('detector')}
-          >
-            Swara Detector
-          </button>
-          <button
-            className={`nav-btn ${page === 'wordle' ? 'nav-active' : ''}`}
-            onClick={() => setPage('wordle')}
-          >
-            Raga Wordle
-          </button>
-        </div>
-      </nav>
-
-      {page === 'wordle' ? (
-        <RagaWordle />
-      ) : (
-        <>
       <header>
         <h1>Swara Detector</h1>
         <p className="subtitle">Detect Indian Classical Music Swaras from Audio Input</p>
@@ -301,8 +277,6 @@ function App() {
           </div>
         </div>
       </div>
-        </>
-      )}
     </div>
   );
 }
