@@ -5,8 +5,8 @@ import Team from './Team';
 
 function App() {
   const validTabs = ['detector', 'about', 'team'];
-  const hashTab = window.location.hash.replace('#', '');
-  const [tab, setTab] = useState(validTabs.includes(hashTab) ? hashTab : 'detector');
+  const pathTab = window.location.pathname.replace('/', '');
+  const [tab, setTab] = useState(validTabs.includes(pathTab) ? pathTab : 'detector');
   const [baseFrequency, setBaseFrequency] = useState(240);
   const [selectedRaga, setSelectedRaga] = useState('none');
   const [currentFrequency, setCurrentFrequency] = useState('-- Hz');
@@ -188,9 +188,9 @@ function App() {
       <nav className="app-nav">
         <span className="nav-brand">Swara Detector</span>
         <div className="nav-links">
-          <button className={`nav-btn ${tab === 'detector' ? 'nav-active' : ''}`} onClick={() => { setTab('detector'); window.location.hash = 'detector'; }}>Detector</button>
-          <button className={`nav-btn ${tab === 'about' ? 'nav-active' : ''}`} onClick={() => { setTab('about'); window.location.hash = 'about'; }}>About</button>
-          <button className={`nav-btn ${tab === 'team' ? 'nav-active' : ''}`} onClick={() => { setTab('team'); window.location.hash = 'team'; }}>Team</button>
+          <button className={`nav-btn ${tab === 'detector' ? 'nav-active' : ''}`} onClick={() => { setTab('detector'); window.history.pushState(null, '', '/detector'); }}>Detector</button>
+          <button className={`nav-btn ${tab === 'about' ? 'nav-active' : ''}`} onClick={() => { setTab('about'); window.history.pushState(null, '', '/about'); }}>About</button>
+          <button className={`nav-btn ${tab === 'team' ? 'nav-active' : ''}`} onClick={() => { setTab('team'); window.history.pushState(null, '', '/team'); }}>Team</button>
         </div>
       </nav>
 
