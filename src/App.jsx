@@ -1,7 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
+import About from './About';
+import Team from './Team';
 
 function App() {
+  const validTabs = ['detector', 'about', 'team'];
+  const hashTab = window.location.hash.replace('#', '');
+  const [tab, setTab] = useState(validTabs.includes(hashTab) ? hashTab : 'detector');
   const [baseFrequency, setBaseFrequency] = useState(240);
   const [selectedRaga, setSelectedRaga] = useState('none');
   const [currentFrequency, setCurrentFrequency] = useState('-- Hz');
@@ -180,103 +185,112 @@ function App() {
 
   return (
     <div className="container">
-      <header>
-        <h1>Swara Detector</h1>
-        <p className="subtitle">Detect Indian Classical Music Swaras from Audio Input</p>
-      </header>
-      
-      <div className="main-content">
-        <div className="input-section">
-          <h2 className="section-title">Input & Detection</h2>
-          
-          <div className="input-group">
-            <label htmlFor="base-frequency">Base Sa Frequency (Hz)</label>
-            <input 
-              type="number" 
-              id="base-frequency" 
-              value={baseFrequency}
-              onChange={(e) => setBaseFrequency(parseFloat(e.target.value))}
-              min="100" 
-              max="500" 
-              step="1"
-            />
-            <p className="frequency-note">
-              Standard base Sa is typically 240 Hz for female voices and 130 Hz for male voices
-            </p>
-          </div>
-          
-          <div className="input-group">
-            <label htmlFor="raga-select">Raga (Optional)</label>
-            <select 
-              id="raga-select" 
-              value={selectedRaga}
-              onChange={(e) => setSelectedRaga(e.target.value)}
-            >
-              <option value="none">None - Show All Swaras</option>
-              <option value="yaman">Yaman</option>
-              <option value="bhairav">Bhairav</option>
-              <option value="malkauns">Malkauns</option>
-              <option value="bhairavi">Bhairavi</option>
-            </select>
-          </div>
-          
-          <button className="btn" onClick={calculateSwaras}>
-            Detect Swaras
-          </button>
-          <button 
-            className={`btn btn-secondary ${isRecording ? 'recording' : ''}`}
-            onClick={toggleRecording}
-          >
-            {isRecording ? 'Stop Recording' : 'Record Audio'}
-          </button>
-          
-          <div className="frequency-display">
-            <span>{currentFrequency}</span>
-          </div>
-          
-          <div className="sa-reference">
-            <div className="reference-title">Common Sa Reference Frequencies</div>
-            <ul className="reference-list">
-              <li>Female Vocalists: 240 Hz</li>
-              <li>Male Vocalists: 130 Hz</li>
-              <li>Harmonium: 240 Hz</li>
-              <li>Tanpura: 110 Hz (Male) / 220 Hz (Female)</li>
-            </ul>
-          </div>
+      <nav className="app-nav">
+        <span className="nav-brand">Swara Detector</span>
+        <div className="nav-links">
+          <button className={`nav-btn ${tab === 'detector' ? 'nav-active' : ''}`} onClick={() => { setTab('detector'); window.location.hash = 'detector'; }}>Detector</button>
+          <button className={`nav-btn ${tab === 'about' ? 'nav-active' : ''}`} onClick={() => { setTab('about'); window.location.hash = 'about'; }}>About</button>
+          <button className={`nav-btn ${tab === 'team' ? 'nav-active' : ''}`} onClick={() => { setTab('team'); window.location.hash = 'team'; }}>Team</button>
         </div>
-        
-        <div className="output-section">
-          <h2 className="section-title">Detected Swaras</h2>
-          
-          <div className="swara-display">
-            {swaras.map((swara, index) => (
-              <div 
-                key={swara.name} 
-                className={`swara-card ${currentSwara === swara.name ? 'active' : ''}`}
-              >
-                <div className="swara-name">{swara.name}</div>
-                <div className="swara-frequency">{swara.frequency.toFixed(2)} Hz</div>
+      </nav>
+
+      {tab === 'about' ? <About /> : tab === 'team' ? <Team /> : (
+        <>
+          <header>
+            <h1>Swara Detector</h1>
+            <p className="subtitle">Detect Indian Classical Music Swaras from Audio Input</p>
+          </header>
+
+          <div className="main-content">
+            <div className="input-section">
+              <h2 className="section-title">Input & Detection</h2>
+
+              <div className="input-group">
+                <label htmlFor="base-frequency">Base Sa Frequency (Hz)</label>
+                <input
+                  type="number"
+                  id="base-frequency"
+                  value={baseFrequency}
+                  onChange={(e) => setBaseFrequency(parseFloat(e.target.value))}
+                  min="100"
+                  max="500"
+                  step="1"
+                />
+                <p className="frequency-note">
+                  Standard base Sa is typically 240 Hz for female voices and 130 Hz for male voices
+                </p>
               </div>
-            ))}
-          </div>
-          
-          <div className="detected-swaras">
-            <h3 className="section-title">Current Detection</h3>
-            <div className="current-swaras-display">
-              {currentSwara}
+
+              <div className="input-group">
+                <label htmlFor="raga-select">Raga (Optional)</label>
+                <select
+                  id="raga-select"
+                  value={selectedRaga}
+                  onChange={(e) => setSelectedRaga(e.target.value)}
+                >
+                  <option value="none">None - Show All Swaras</option>
+                  <option value="yaman">Yaman</option>
+                  <option value="bhairav">Bhairav</option>
+                  <option value="malkauns">Malkauns</option>
+                  <option value="bhairavi">Bhairavi</option>
+                </select>
+              </div>
+
+              <button className="btn" onClick={calculateSwaras}>Detect Swaras</button>
+              <button
+                className={`btn btn-secondary ${isRecording ? 'recording' : ''}`}
+                onClick={toggleRecording}
+              >
+                {isRecording ? 'Stop Recording' : 'Record Audio'}
+              </button>
+
+              <div className="frequency-display">
+                <span>{currentFrequency}</span>
+              </div>
+
+              <div className="sa-reference">
+                <div className="reference-title">Common Sa Reference Frequencies</div>
+                <ul className="reference-list">
+                  <li>Female Vocalists: 240 Hz</li>
+                  <li>Male Vocalists: 130 Hz</li>
+                  <li>Harmonium: 240 Hz</li>
+                  <li>Tanpura: 110 Hz (Male) / 220 Hz (Female)</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="output-section">
+              <h2 className="section-title">Detected Swaras</h2>
+
+              <div className="swara-display">
+                {swaras.map((swara) => (
+                  <div
+                    key={swara.name}
+                    className={`swara-card ${currentSwara === swara.name ? 'active' : ''}`}
+                  >
+                    <div className="swara-name">{swara.name}</div>
+                    <div className="swara-frequency">{swara.frequency.toFixed(2)} Hz</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="detected-swaras">
+                <h3 className="section-title">Current Detection</h3>
+                <div className="current-swaras-display">{currentSwara}</div>
+              </div>
+
+              <div className="sa-reference">
+                <div className="reference-title">About Swaras</div>
+                <p className="about-swaras">
+                  In Indian classical music, the seven basic swaras are Sa, Re, Ga, Ma, Pa, Dha, and Ni.
+                  These correspond to the Western solfège: Do, Re, Mi, Fa, Sol, La, Ti. The relationships
+                  between swaras follow specific mathematical ratios.
+                </p>
+              </div>
             </div>
           </div>
-          
-          <div className="sa-reference">
-            <div className="reference-title">About Swaras</div>
-            <p className="about-swaras">
-              In Indian classical music, the seven basic swaras are Sa, Re, Ga, Ma, Pa, Dha, and Ni. 
-              These correspond to the Western solfège: Do, Re, Mi, Fa, Sol, La, Ti. The relationships 
-              between swaras follow specific mathematical ratios.
-            </p>
-          </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }
