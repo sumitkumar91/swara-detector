@@ -1,4 +1,3 @@
-import React from 'react';
 
 function About() {
   return (
@@ -19,6 +18,17 @@ function About() {
         </div>
         <div className="media-photos">
           <img src="/sbuhacks.JPG" alt="Team at SBU Hacks" />
+        </div>
+      </div>
+
+      <div className="slides-section">
+        <h2 className="section-title">Hackathon Presentation</h2>
+        <div className="slides-wrapper">
+          <iframe
+            src="https://docs.google.com/presentation/d/1rY19RQWHexGEYuhh9xjOGtOMxBWG50hq3FFKHQ169hA/embed?start=false&loop=false&delayms=3000"
+            title="Swara Detector Hackathon Presentation"
+            allowFullScreen
+          />
         </div>
       </div>
 
