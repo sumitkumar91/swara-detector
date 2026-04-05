@@ -109,7 +109,8 @@ function About() {
       </div>
 
       <div className="hackathon-badge">
-        Built at a Hackathon - merging centuries of musical tradition with modern web technology
+        Built at a Hackathon - merging centuries of musical tradition with modern web technology.{' '}
+        <a href="https://devpost.com/software/swara-detector" target="_blank" rel="noopener noreferrer" className="devpost-link">View on Devpost</a>
       </div>
     </div>
   );

@@ -470,6 +470,11 @@ input:focus, select:focus {
   font-size: 0.85rem;
 }
 
+.devpost-link {
+  color: var(--secondary);
+  text-decoration: underline;
+}
+
 .hackathon-badge {
   text-align: center;
   padding: 18px;
