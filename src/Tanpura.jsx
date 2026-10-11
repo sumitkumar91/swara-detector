@@ -303,7 +303,9 @@ export default function Tanpura({ baseFrequency = 240, onBaseFrequencyChange }) 
             >
               <div className="preset-name">{preset.name}</div>
               <div className="preset-summary">
-                {preset.id === 'pa' ? 'Fifth (Pa) Reference' : 'Fourth (Ma) Reference'}
+                {preset.id === 'pa'
+                  ? 'Lower 5th (Mandra Pa) • Jodi • Kharja'
+                  : 'Lower 4th (Mandra Ma) • Jodi • Kharja'}
               </div>
             </button>
           ))}
@@ -315,13 +317,14 @@ export default function Tanpura({ baseFrequency = 240, onBaseFrequencyChange }) 
             <div
               key={i}
               className={`string-card ${activeStringIndex === i ? 'active-pluck' : ''}`}
-              aria-label={`String ${i + 1}: ${str.name}, ${str.frequency.toFixed(1)} Hertz`}
+              aria-label={`String ${i + 1}: ${str.name} (${str.swara}), ${str.frequency.toFixed(1)} Hertz`}
             >
               <div className="string-header">
                 <span className="string-number">String {i + 1}</span>
                 <span className="string-formula">{str.formula}</span>
               </div>
               <div className="string-swara">{str.name}</div>
+              <div className="string-swara-sub">{str.swara}</div>
               <div className="string-freq">{str.frequency.toFixed(1)} Hz</div>
             </div>
           ))}

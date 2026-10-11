@@ -878,11 +878,19 @@ footer {
   font-size: 1.35rem;
   font-weight: 700;
   color: var(--secondary);
+  margin-bottom: 2px;
+}
+
+.string-swara-sub {
+  font-size: 0.75rem;
+  opacity: 0.75;
   margin-bottom: 4px;
 }
 
-.string-card.active-pluck .string-swara {
+.string-card.active-pluck .string-swara,
+.string-card.active-pluck .string-swara-sub {
   color: #fff;
+  opacity: 1;
 }
 
 .string-freq {

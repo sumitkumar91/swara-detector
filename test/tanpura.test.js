@@ -10,57 +10,62 @@ import {
 import { TanpuraEngine } from '../src/audio/tanpuraEngine.js';
 
 describe('Music Theory & Tuning Calculations', () => {
-  it('correctly calculates Sa-Pa string frequencies for 240 Hz', () => {
+  it('correctly calculates Pa-Sa-Sa-Sa (Standard) string frequencies for 240 Hz', () => {
     const freqs = getStringFrequencies(240, 'pa');
     assert.equal(freqs.length, 4);
 
-    // String 1: Higher-octave Sa = 2 * baseSa (480 Hz)
-    assert.equal(freqs[0].ratio, 2.0);
-    assert.equal(freqs[0].frequency, 480);
-    assert.equal(freqs[0].name, 'Sa (High)');
+    // String 1: Lower-fifth Pa (Mandra Pa) = 0.75 * baseSa (180 Hz)
+    assert.equal(freqs[0].ratio, 0.75);
+    assert.equal(freqs[0].frequency, 180);
+    assert.equal(freqs[0].name, 'Pa (Low)');
+    assert.equal(freqs[0].swara, 'Mandra Pa');
 
-    // String 2: Base Sa = 1 * baseSa (240 Hz)
+    // String 2: Middle Sa (Jodi 1) = 1.0 * baseSa (240 Hz)
     assert.equal(freqs[1].ratio, 1.0);
     assert.equal(freqs[1].frequency, 240);
+    assert.equal(freqs[1].swara, 'Madhya Sa');
 
-    // String 3: Pa = 1.5 * baseSa (360 Hz)
-    assert.equal(freqs[2].ratio, 1.5);
-    assert.equal(freqs[2].frequency, 360);
-    assert.equal(freqs[2].name, 'Pa');
+    // String 3: Middle Sa (Jodi 2) = 1.0 * baseSa (240 Hz)
+    assert.equal(freqs[2].ratio, 1.0);
+    assert.equal(freqs[2].frequency, 240);
+    assert.equal(freqs[2].swara, 'Madhya Sa');
 
-    // String 4: Base Sa = 1 * baseSa (240 Hz)
-    assert.equal(freqs[3].ratio, 1.0);
-    assert.equal(freqs[3].frequency, 240);
+    // String 4: Deep Lower Sa (Kharja) = 0.5 * baseSa (120 Hz)
+    assert.equal(freqs[3].ratio, 0.5);
+    assert.equal(freqs[3].frequency, 120);
+    assert.equal(freqs[3].name, 'Sa (Low)');
+    assert.equal(freqs[3].swara, 'Mandra Sa');
   });
 
-  it('correctly calculates Sa-Ma string frequencies for 240 Hz', () => {
+  it('correctly calculates Ma-Sa-Sa-Sa (Malkauns/Bageshri) string frequencies for 240 Hz', () => {
     const freqs = getStringFrequencies(240, 'ma');
     assert.equal(freqs.length, 4);
 
-    // String 1: Higher-octave Sa = 2 * baseSa (480 Hz)
-    assert.equal(freqs[0].ratio, 2.0);
-    assert.equal(freqs[0].frequency, 480);
+    // String 1: Lower-fourth Ma (Mandra Ma) = 0.666666 * baseSa (~160 Hz)
+    assert.equal(freqs[0].ratio, 0.666666);
+    assert.ok(Math.abs(freqs[0].frequency - 160) < 0.01);
+    assert.equal(freqs[0].name, 'Ma (Low)');
+    assert.equal(freqs[0].swara, 'Mandra Ma');
 
-    // String 2: Base Sa = 1 * baseSa (240 Hz)
+    // String 2: Middle Sa (Jodi 1) = 1.0 * baseSa (240 Hz)
     assert.equal(freqs[1].ratio, 1.0);
     assert.equal(freqs[1].frequency, 240);
 
-    // String 3: Ma = 4/3 * baseSa (320 Hz)
-    assert.equal(freqs[2].ratio, 4 / 3);
-    assert.equal(freqs[2].frequency, 320);
-    assert.equal(freqs[2].name, 'Ma');
+    // String 3: Middle Sa (Jodi 2) = 1.0 * baseSa (240 Hz)
+    assert.equal(freqs[2].ratio, 1.0);
+    assert.equal(freqs[2].frequency, 240);
 
-    // String 4: Base Sa = 1 * baseSa (240 Hz)
-    assert.equal(freqs[3].ratio, 1.0);
-    assert.equal(freqs[3].frequency, 240);
+    // String 4: Deep Lower Sa (Kharja) = 0.5 * baseSa (120 Hz)
+    assert.equal(freqs[3].ratio, 0.5);
+    assert.equal(freqs[3].frequency, 120);
   });
 
   it('scales string frequencies dynamically when base Sa changes', () => {
     const maleFreqs = getStringFrequencies(130, 'pa');
-    assert.equal(maleFreqs[0].frequency, 260);
+    assert.equal(maleFreqs[0].frequency, 97.5);
     assert.equal(maleFreqs[1].frequency, 130);
-    assert.equal(maleFreqs[2].frequency, 195);
-    assert.equal(maleFreqs[3].frequency, 130);
+    assert.equal(maleFreqs[2].frequency, 130);
+    assert.equal(maleFreqs[3].frequency, 65);
   });
 
   it('safely handles invalid base frequencies', () => {

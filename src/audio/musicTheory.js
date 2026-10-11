@@ -24,32 +24,31 @@ export const OCTAVE_OPTIONS = [
 ];
 
 /**
- * Tanpura Tuning Configurations
+ * Tanpura Tuning Configurations (Traditional Acoustic 4-String Setup)
  *
- * Sa–Pa: String 1 = Higher Sa (2x), String 2 = Base Sa (1x), String 3 = Pa (3/2x), String 4 = Base Sa (1x)
- * Sa–Ma: String 1 = Higher Sa (2x), String 2 = Base Sa (1x), String 3 = Ma (4/3x), String 4 = Base Sa (1x)
+ * Sequence: Mandra Pa/Ma (String 1) -> Jodi Madhya Sa (String 2) -> Jodi Madhya Sa (String 3) -> Kharja Mandra Sa (String 4)
  */
 export const TUNING_PRESETS = {
   pa: {
     id: 'pa',
-    name: 'Sa–Pa',
-    description: 'Uses the tonic and perfect fifth as the principal pitch references.',
+    name: 'Pa–Sa–Sa–Sa (Standard)',
+    description: 'Traditional tuning starting with the lower fifth (Mandra Pancham).',
     strings: [
-      { id: 0, name: 'Sa (High)', ratio: 2.0, swara: 'Taar Sa', formula: '2 × Sa' },
+      { id: 0, name: 'Pa (Low)', ratio: 0.75, swara: 'Mandra Pa', formula: '3/4 × Sa' },
       { id: 1, name: 'Sa', ratio: 1.0, swara: 'Madhya Sa', formula: '1 × Sa' },
-      { id: 2, name: 'Pa', ratio: 1.5, swara: 'Pancham', formula: '3/2 × Sa' },
-      { id: 3, name: 'Sa', ratio: 1.0, swara: 'Madhya Sa', formula: '1 × Sa' },
+      { id: 2, name: 'Sa', ratio: 1.0, swara: 'Madhya Sa', formula: '1 × Sa' },
+      { id: 3, name: 'Sa (Low)', ratio: 0.5, swara: 'Mandra Sa', formula: '1/2 × Sa' },
     ],
   },
   ma: {
     id: 'ma',
-    name: 'Sa–Ma',
-    description: 'Uses the tonic and perfect fourth as the principal pitch references.',
+    name: 'Ma–Sa–Sa–Sa (Malkauns/Bageshri)',
+    description: 'Traditional tuning starting with the lower fourth (Mandra Madhyam).',
     strings: [
-      { id: 0, name: 'Sa (High)', ratio: 2.0, swara: 'Taar Sa', formula: '2 × Sa' },
+      { id: 0, name: 'Ma (Low)', ratio: 0.666666, swara: 'Mandra Ma', formula: '2/3 × Sa' }, // (4/3) / 2
       { id: 1, name: 'Sa', ratio: 1.0, swara: 'Madhya Sa', formula: '1 × Sa' },
-      { id: 2, name: 'Ma', ratio: 4 / 3, swara: 'Madhyam', formula: '4/3 × Sa' },
-      { id: 3, name: 'Sa', ratio: 1.0, swara: 'Madhya Sa', formula: '1 × Sa' },
+      { id: 2, name: 'Sa', ratio: 1.0, swara: 'Madhya Sa', formula: '1 × Sa' },
+      { id: 3, name: 'Sa (Low)', ratio: 0.5, swara: 'Mandra Sa', formula: '1/2 × Sa' },
     ],
   },
 };

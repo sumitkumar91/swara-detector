@@ -267,8 +267,10 @@ export class TanpuraEngine {
     if (!this.audioCtx || !this.busGain) return;
     const ctx = this.audioCtx;
 
-    // Pluck duration: strings resonate for ~4.2 - 5.0 seconds
-    const duration = Math.max(3.8, (60 / this.tempo) * 3.6);
+    // Pluck duration: Kharja string (index 3) has extra sustain and resonance
+    const duration = stringIndex === 3
+      ? Math.max(4.6, (60 / this.tempo) * 4.2)
+      : Math.max(3.8, (60 / this.tempo) * 3.6);
 
     // 1. Dual oscillator for natural acoustic beating / shimmering jivari motion
     // Primary oscillator
@@ -280,14 +282,14 @@ export class TanpuraEngine {
     }
     osc1.frequency.setValueAtTime(frequency, startTime);
 
-    // Secondary oscillator with subtle detune (~0.35 Hz) for acoustic chorus/shimmer
+    // Secondary oscillator with subtle detune (~0.3 Hz) for acoustic chorus/shimmer
     const osc2 = ctx.createOscillator();
     if (this.tanpuraWave) {
       osc2.setPeriodicWave(this.tanpuraWave);
     } else {
       osc2.type = 'sawtooth';
     }
-    const detuneOffset = stringIndex === 0 ? 0.45 : 0.32;
+    const detuneOffset = stringIndex === 3 ? 0.25 : (stringIndex === 0 ? 0.38 : 0.30);
     osc2.frequency.setValueAtTime(frequency + detuneOffset, startTime);
 
     // 2. Dynamic Jivari filter:
@@ -296,7 +298,7 @@ export class TanpuraEngine {
     jivariFilter.type = 'lowpass';
     jivariFilter.Q.setValueAtTime(2.2, startTime); // Resonant peak at bridge contact
 
-    const startFilterFreq = Math.min(frequency * 3.0, 2400);
+    const startFilterFreq = Math.min(frequency * 3.2, 2400);
     const peakFilterFreq = Math.min(frequency * 8.5, 5200);
     const endFilterFreq = Math.max(frequency * 1.4, 450);
 
@@ -309,7 +311,7 @@ export class TanpuraEngine {
     envelopeGain.gain.setValueAtTime(0.0001, startTime);
 
     // Fast pluck attack (15ms)
-    const attackPeak = stringIndex === 0 ? 0.6 : 0.75;
+    const attackPeak = stringIndex === 3 ? 0.8 : (stringIndex === 0 ? 0.72 : 0.68);
     envelopeGain.gain.linearRampToValueAtTime(attackPeak, startTime + 0.015);
 
     // Pluck transient settle (120ms)
