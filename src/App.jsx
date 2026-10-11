@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 import About from './About';
 import Team from './Team';
+import Tanpura from './Tanpura';
+import TimeRagaModal from './TimeRagaModal';
 
 function App() {
   const validTabs = ['detector', 'about', 'team'];
@@ -9,6 +11,7 @@ function App() {
   const [tab, setTab] = useState(validTabs.includes(pathTab) ? pathTab : 'detector');
   const [baseFrequency, setBaseFrequency] = useState(240);
   const [selectedRaga, setSelectedRaga] = useState('none');
+  const [isTimeRagaOpen, setIsTimeRagaOpen] = useState(false);
   const [currentFrequency, setCurrentFrequency] = useState('-- Hz');
   const [currentSwara, setCurrentSwara] = useState('No swara detected');
   const [isRecording, setIsRecording] = useState(false);
@@ -20,9 +23,8 @@ function App() {
   const javascriptNodeRef = useRef(null);
 
   // Calculate swara frequencies based on base frequency
-  const calculateSwaras = () => {
-    if (!baseFrequency || baseFrequency <= 0) {
-      alert('Please enter a valid base frequency');
+  const calculateSwaras = useCallback(() => {
+    if (!baseFrequency || baseFrequency <= 0 || isNaN(baseFrequency)) {
       return;
     }
 
@@ -49,6 +51,14 @@ function App() {
     setSwaras(calculatedSwaras);
     setCurrentFrequency(`${baseFrequency} Hz`);
     setCurrentSwara('Sa (Base)');
+  }, [baseFrequency]);
+
+  const handleManualCalculate = () => {
+    if (!baseFrequency || baseFrequency <= 0 || isNaN(baseFrequency)) {
+      alert('Please enter a valid base frequency');
+      return;
+    }
+    calculateSwaras();
   };
 
   // Initialize with default swaras
@@ -181,7 +191,7 @@ function App() {
   // Calculate swaras when base frequency changes
   useEffect(() => {
     calculateSwaras();
-  }, [baseFrequency]);
+  }, [calculateSwaras]);
 
   return (
     <div className="container">
@@ -191,6 +201,14 @@ function App() {
           <button className={`nav-btn ${tab === 'detector' ? 'nav-active' : ''}`} onClick={() => { setTab('detector'); window.history.pushState(null, '', '/detector'); }}>Detector</button>
           <button className={`nav-btn ${tab === 'about' ? 'nav-active' : ''}`} onClick={() => { setTab('about'); window.history.pushState(null, '', '/about'); }}>About</button>
           <button className={`nav-btn ${tab === 'team' ? 'nav-active' : ''}`} onClick={() => { setTab('team'); window.history.pushState(null, '', '/team'); }}>Team</button>
+          <button
+            type="button"
+            className="nav-btn nav-btn-highlight"
+            onClick={() => setIsTimeRagaOpen(true)}
+            title="Discover and listen to ragas suitable for the current time of day"
+          >
+            🎵 Ragas for Right Now
+          </button>
         </div>
       </nav>
 
@@ -200,6 +218,12 @@ function App() {
             <h1>Swara Detector</h1>
             <p className="subtitle">Detect Indian Classical Music Swaras from Audio Input</p>
           </header>
+
+          {/* Tanpura Drone Player */}
+          <Tanpura
+            baseFrequency={baseFrequency}
+            onBaseFrequencyChange={(newFreq) => setBaseFrequency(newFreq)}
+          />
 
           <div className="main-content">
             <div className="input-section">
@@ -211,7 +235,7 @@ function App() {
                   type="number"
                   id="base-frequency"
                   value={baseFrequency}
-                  onChange={(e) => setBaseFrequency(parseFloat(e.target.value))}
+                  onChange={(e) => setBaseFrequency(parseFloat(e.target.value) || 0)}
                   min="100"
                   max="500"
                   step="1"
@@ -222,7 +246,17 @@ function App() {
               </div>
 
               <div className="input-group">
-                <label htmlFor="raga-select">Raga (Optional)</label>
+                <div className="raga-label-container">
+                  <label htmlFor="raga-select">Raga (Optional)</label>
+                  <button
+                    type="button"
+                    className="btn-time-raga-link"
+                    onClick={() => setIsTimeRagaOpen(true)}
+                    title="Find out what ragas to listen to right now"
+                  >
+                    🕰️ What to listen to now?
+                  </button>
+                </div>
                 <select
                   id="raga-select"
                   value={selectedRaga}
@@ -236,7 +270,7 @@ function App() {
                 </select>
               </div>
 
-              <button className="btn" onClick={calculateSwaras}>Detect Swaras</button>
+              <button className="btn" onClick={handleManualCalculate}>Detect Swaras</button>
               <button
                 className={`btn btn-secondary ${isRecording ? 'recording' : ''}`}
                 onClick={toggleRecording}
@@ -291,6 +325,12 @@ function App() {
           </div>
         </>
       )}
+
+      {/* Time-of-Day Raga Listening Modal */}
+      <TimeRagaModal
+        isOpen={isTimeRagaOpen}
+        onClose={() => setIsTimeRagaOpen(false)}
+      />
     </div>
   );
 }
