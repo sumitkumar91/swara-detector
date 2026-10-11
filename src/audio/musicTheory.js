@@ -45,7 +45,7 @@ export const TUNING_PRESETS = {
     name: 'Ma–Sa–Sa–Sa (Malkauns/Bageshri)',
     description: 'Traditional tuning starting with the lower fourth (Mandra Madhyam).',
     strings: [
-      { id: 0, name: 'Ma (Low)', ratio: 0.666666, swara: 'Mandra Ma', formula: '2/3 × Sa' }, // (4/3) / 2
+      { id: 0, name: 'Ma (Low)', ratio: 2 / 3, swara: 'Mandra Ma', formula: '2/3 × Sa' },
       { id: 1, name: 'Sa', ratio: 1.0, swara: 'Madhya Sa', formula: '1 × Sa' },
       { id: 2, name: 'Sa', ratio: 1.0, swara: 'Madhya Sa', formula: '1 × Sa' },
       { id: 3, name: 'Sa (Low)', ratio: 0.5, swara: 'Mandra Sa', formula: '1/2 × Sa' },
@@ -98,7 +98,9 @@ export function frequencyToNote(frequency) {
   }
   const midiReal = 69 + 12 * Math.log2(frequency / 440);
   const midiNote = Math.round(midiReal);
-  const rawCents = Math.round((midiReal - midiNote) * 100);
+  // Pure unrounded frequency reference for cents calculation (no premature rounding)
+  const unroundedReferenceFreq = 440 * Math.pow(2, (midiNote - 69) / 12);
+  const rawCents = Math.round(1200 * Math.log2(frequency / unroundedReferenceFreq));
   const cents = rawCents === 0 ? 0 : rawCents;
   const octave = Math.floor(midiNote / 12) - 1;
   const noteIndex = ((midiNote % 12) + 12) % 12;

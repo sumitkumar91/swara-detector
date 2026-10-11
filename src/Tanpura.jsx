@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { TanpuraEngine } from './audio/tanpuraEngine';
+import { TanpuraEngine, MIN_TEMPO, MAX_TEMPO } from './audio/tanpuraEngine';
 import {
   CHROMATIC_NOTES,
   OCTAVE_OPTIONS,
@@ -24,7 +24,7 @@ export default function Tanpura({ baseFrequency = 240, onBaseFrequencyChange }) 
   // Tanpura configuration
   const [tuning, setTuning] = useState('pa'); // 'pa' | 'ma'
   const [volume, setVolume] = useState(0.5); // 0.0 to 1.0 (50% conservative default)
-  const [tempo, setTempo] = useState(60); // 30 to 100 BPM
+  const [tempo, setTempo] = useState(60); // 20 to 140 BPM (aligned with engine)
 
   // Tonic note & octave representation derived from baseFrequency
   const initialNoteInfo = frequencyToNote(baseFrequency) || { noteIndex: 11, octave: 3, cents: -49 };
@@ -360,8 +360,8 @@ export default function Tanpura({ baseFrequency = 240, onBaseFrequencyChange }) 
           <input
             type="range"
             id="tanpura-tempo-slider"
-            min="30"
-            max="100"
+            min={MIN_TEMPO}
+            max={MAX_TEMPO}
             step="1"
             value={tempo}
             onChange={(e) => handleTempoChange(parseInt(e.target.value, 10))}

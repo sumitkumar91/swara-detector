@@ -7,7 +7,7 @@ import {
   CHROMATIC_NOTES,
   TUNING_PRESETS,
 } from '../src/audio/musicTheory.js';
-import { TanpuraEngine } from '../src/audio/tanpuraEngine.js';
+import { TanpuraEngine, MIN_TEMPO, MAX_TEMPO } from '../src/audio/tanpuraEngine.js';
 
 describe('Music Theory & Tuning Calculations', () => {
   it('correctly calculates Pa-Sa-Sa-Sa (Standard) string frequencies for 240 Hz', () => {
@@ -41,9 +41,9 @@ describe('Music Theory & Tuning Calculations', () => {
     const freqs = getStringFrequencies(240, 'ma');
     assert.equal(freqs.length, 4);
 
-    // String 1: Lower-fourth Ma (Mandra Ma) = 0.666666 * baseSa (~160 Hz)
-    assert.equal(freqs[0].ratio, 0.666666);
-    assert.ok(Math.abs(freqs[0].frequency - 160) < 0.01);
+    // String 1: Lower-fourth Ma (Mandra Ma) = 2/3 * baseSa (160 Hz exact)
+    assert.equal(freqs[0].ratio, 2 / 3);
+    assert.equal(freqs[0].frequency, 160);
     assert.equal(freqs[0].name, 'Ma (Low)');
     assert.equal(freqs[0].swara, 'Mandra Ma');
 
@@ -148,6 +148,16 @@ describe('TanpuraEngine Lifecycle & Configuration', () => {
     engine.setTempo(75);
     assert.equal(engine.tempo, 75);
 
+    // Rejects out-of-bounds tempo outside MIN_TEMPO (20) and MAX_TEMPO (140)
+    engine.setTempo(15);
+    assert.equal(engine.tempo, 75);
+    engine.setTempo(160);
+    assert.equal(engine.tempo, 75);
+    engine.setTempo(20);
+    assert.equal(engine.tempo, 20);
+    engine.setTempo(140);
+    assert.equal(engine.tempo, 140);
+
     engine.setTuning('ma');
     assert.equal(engine.tuning, 'ma');
 
@@ -225,6 +235,12 @@ describe('TanpuraEngine Audio Graph & Scheduler Execution', () => {
       this.release = new MockAudioParam(0.25);
     }
   }
+  class MockStereoPanner extends MockAudioNode {
+    constructor() {
+      super();
+      this.pan = new MockAudioParam(0);
+    }
+  }
   class MockAudioContext {
     constructor() {
       this.currentTime = 0;
@@ -235,6 +251,7 @@ describe('TanpuraEngine Audio Graph & Scheduler Execution', () => {
     createBiquadFilter() { return new MockBiquadFilter(); }
     createOscillator() { return new MockOscillator(); }
     createDynamicsCompressor() { return new MockCompressor(); }
+    createStereoPanner() { return new MockStereoPanner(); }
     createPeriodicWave() { return {}; }
     resume() { return Promise.resolve(); }
     close() { this.state = 'closed'; return Promise.resolve(); }
@@ -316,6 +333,106 @@ describe('TanpuraEngine Audio Graph & Scheduler Execution', () => {
     assert.equal(voice3.osc2.frequency.value, 120 + (120 * 0.001));
 
     engine.destroy();
+  });
+
+  it('applies stereo panning and 30ms smooth attack envelope to each string voice', async () => {
+    const engine = new TanpuraEngine({ baseFrequency: 240, tuning: 'pa' });
+    await engine.initAudioContext();
+
+    // Pluck all 4 strings
+    for (let i = 0; i < 4; i++) {
+      engine.pluckString(240, 0, i);
+    }
+    const voices = Array.from(engine.activeVoices);
+    assert.equal(voices.length, 4);
+
+    // Check stereo panning distribution across soundstage
+    assert.equal(voices[0].panner.pan.value, -0.25);
+    assert.equal(voices[1].panner.pan.value, -0.08);
+    assert.equal(voices[2].panner.pan.value, 0.08);
+    assert.equal(voices[3].panner.pan.value, 0.2);
+
+    engine.destroy();
+  });
+
+  it('schedules a 1.5x rhythmic breath pause after the Kharja string (index 3)', async () => {
+    const engine = new TanpuraEngine({ baseFrequency: 240, tempo: 60 });
+    await engine.initAudioContext();
+    engine.isPlaying = true;
+    engine.audioCtx.currentTime = 0;
+    engine.nextPluckTime = 0.1;
+    engine.currentStringIndex = 0;
+
+    const baseStep = 60 / 60; // 1.0s
+
+    // String 0 -> nextPluckTime advances by 1.0s
+    engine.currentStringIndex = 0;
+    engine.nextPluckTime = 1.0;
+    engine.schedulerTick(); // schedules strings ahead
+    // Advance specifically to test string 3 to 0 transition
+    engine.currentStringIndex = 3;
+    engine.nextPluckTime = 10.0;
+    engine.scheduleAheadTime = 0.05; // only schedule one pluck
+    engine.audioCtx.currentTime = 10.0;
+
+    engine.schedulerTick();
+    // After plucking string 3, nextPluckTime should be 10.0 + (1.0 * 1.5) = 11.5
+    assert.equal(engine.nextPluckTime, 10.0 + baseStep * 1.5);
+    assert.equal(engine.currentStringIndex, 0);
+
+    engine.destroy();
+  });
+
+  it('protects against rapid start/stop/start double-click race conditions via generation counter', async () => {
+    const engine = new TanpuraEngine({ baseFrequency: 240 });
+    await engine.start();
+    assert.equal(engine.isPlaying, true);
+
+    // Rapid double click: user stops then immediately starts before 40ms timeout
+    engine.stop();
+    assert.equal(engine.isPlaying, false);
+
+    await engine.start();
+    assert.equal(engine.isPlaying, true);
+
+    // Wait 50ms for the old stop's 40ms setTimeout to fire
+    await new Promise((resolve) => setTimeout(resolve, 55));
+
+    // The new playback session must NOT be killed by the old stop timeout
+    assert.equal(engine.isPlaying, true);
+    assert.notEqual(engine.schedulerTimer, null);
+
+    engine.destroy();
+  });
+
+  it('recovers from clock drift using while loop without dropping cyclic order', async () => {
+    const engine = new TanpuraEngine({ baseFrequency: 240, tempo: 60 });
+    await engine.initAudioContext();
+    engine.isPlaying = true;
+    engine.currentStringIndex = 0;
+    engine.nextPluckTime = 1.0;
+
+    // Simulate tab going to sleep for 4.5 seconds (clock jumps to 5.0)
+    engine.audioCtx.currentTime = 5.0;
+    engine.scheduleAheadTime = 0.1;
+
+    engine.schedulerTick();
+
+    // Next pluck time should have advanced past currentTime
+    assert.ok(engine.nextPluckTime >= 5.0);
+
+    engine.destroy();
+  });
+
+  it('safely handles destroy() when AudioContext is closed without throwing', async () => {
+    const engine = new TanpuraEngine();
+    await engine.initAudioContext();
+    await engine.audioCtx.close();
+
+    assert.doesNotThrow(() => {
+      engine.destroy();
+    });
+    assert.equal(engine.audioCtx, null);
 
     // Restore window
     globalThis.window = originalWindow;

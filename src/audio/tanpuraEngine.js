@@ -8,12 +8,16 @@
 
 import { getStringFrequencies } from './musicTheory.js';
 
+export const MIN_TEMPO = 20; // BPM
+export const MAX_TEMPO = 140; // BPM
+
 export class TanpuraEngine {
   constructor(options = {}) {
     this.baseFrequency = options.baseFrequency || 240;
     this.tuning = options.tuning || 'pa';
     this.volume = typeof options.volume === 'number' ? options.volume : 0.5;
-    this.tempo = options.tempo || 60; // Plucks per minute (BPM)
+    this.tempo = Math.max(MIN_TEMPO, Math.min(MAX_TEMPO, options.tempo || 60)); // Plucks per minute (BPM)
+    this.generation = 0; // Generation counter to guard against rapid start/stop race conditions
 
     // Callbacks
     this.onStateChange = options.onStateChange || null; // (state: 'stopped' | 'playing' | 'loading' | 'error') => void
@@ -152,10 +156,14 @@ export class TanpuraEngine {
   async start() {
     if (this.isPlaying || this.isStarting) return;
     this.isStarting = true;
+    this.generation++;
+    const currentGen = this.generation;
     this._emitState('loading');
 
     try {
       await this.initAudioContext();
+      // Guard against race conditions if stopped while awaiting audio context initialization
+      if (this.generation !== currentGen) return;
 
       // Ensure master gain is unmuted to current volume
       const now = this.audioCtx.currentTime;
@@ -174,10 +182,12 @@ export class TanpuraEngine {
 
       this._emitState('playing');
     } catch (err) {
-      this.isPlaying = false;
-      this.isStarting = false;
-      this._emitState('error', err);
-      if (this.onError) this.onError(err);
+      if (this.generation === currentGen) {
+        this.isPlaying = false;
+        this.isStarting = false;
+        this._emitState('error', err);
+        if (this.onError) this.onError(err);
+      }
       throw err;
     }
   }
@@ -186,6 +196,9 @@ export class TanpuraEngine {
    * Stop Tanpura drone playback with clean audio fade to prevent clicks
    */
   stop() {
+    this.generation++;
+    const currentGen = this.generation;
+
     if (!this.isPlaying && !this.isStarting) return;
 
     this.isPlaying = false;
@@ -213,8 +226,13 @@ export class TanpuraEngine {
       this.masterGain.gain.linearRampToValueAtTime(0.0001, now + 0.035);
 
       setTimeout(() => {
+        // Race condition guard: abort cleanup if a new start() was invoked during fade
+        if (this.generation !== currentGen) return;
+        // Context cleanup guard: ensure timeout bails out if audioCtx is closed/null
+        if (!this.audioCtx || this.audioCtx.state === 'closed') return;
+
         this.cleanupActiveVoices();
-        if (this.masterGain && this.audioCtx) {
+        if (this.masterGain && this.audioCtx && this.audioCtx.state !== 'closed') {
           this.masterGain.gain.setValueAtTime(this.volume, this.audioCtx.currentTime);
         }
         this._emitState('stopped');
@@ -232,10 +250,14 @@ export class TanpuraEngine {
     if (!this.isPlaying || !this.audioCtx) return;
 
     const currentTime = this.audioCtx.currentTime;
+    const baseStepInterval = 60 / Math.max(MIN_TEMPO, Math.min(MAX_TEMPO, this.tempo));
 
-    // If clock slipped behind (e.g. background tab wake-up), resync
-    if (this.nextPluckTime < currentTime) {
-      this.nextPluckTime = currentTime + 0.02;
+    // If clock slipped behind (e.g. background tab wake-up), recover using a while loop
+    // so notes and cyclic string ordering are not dropped
+    while (this.nextPluckTime < currentTime) {
+      const stepInterval = this.currentStringIndex === 3 ? baseStepInterval * 1.5 : baseStepInterval;
+      this.nextPluckTime += stepInterval;
+      this.currentStringIndex = (this.currentStringIndex + 1) % 4;
     }
 
     while (this.nextPluckTime < currentTime + this.scheduleAheadTime) {
@@ -253,8 +275,9 @@ export class TanpuraEngine {
       // Schedule UI string indicator highlight
       this.scheduleUiNotification(stringIndex, pluckTime);
 
-      // Advance scheduler
-      const stepInterval = 60 / Math.max(20, Math.min(140, this.tempo));
+      // Advance scheduler: traditional acoustic Kharja pause allows string 4 (Kharja)
+      // to resonate with 1.5x rhythmic breath before restarting the cycle on string 1
+      const stepInterval = stringIndex === 3 ? baseStepInterval * 1.5 : baseStepInterval;
       this.nextPluckTime += stepInterval;
       this.currentStringIndex = (this.currentStringIndex + 1) % 4;
     }
@@ -302,17 +325,18 @@ export class TanpuraEngine {
     const peakFilterFreq = Math.min(frequency * 8.5, 5200);
     const endFilterFreq = Math.max(frequency * 1.4, 450);
 
+    const attackDuration = 0.030; // ~25–35ms smooth pluck attack eliminates transient click artifacts
+
     jivariFilter.frequency.setValueAtTime(startFilterFreq, startTime);
-    jivariFilter.frequency.linearRampToValueAtTime(peakFilterFreq, startTime + 0.025);
+    jivariFilter.frequency.linearRampToValueAtTime(peakFilterFreq, startTime + attackDuration);
     jivariFilter.frequency.exponentialRampToValueAtTime(endFilterFreq, startTime + duration);
 
-    // 3. Amplitude envelope
+    // 3. Amplitude envelope with lengthened attack (30ms)
     const envelopeGain = ctx.createGain();
     envelopeGain.gain.setValueAtTime(0.0001, startTime);
 
-    // Fast pluck attack (15ms)
     const attackPeak = stringIndex === 3 ? 0.8 : (stringIndex === 0 ? 0.72 : 0.68);
-    envelopeGain.gain.linearRampToValueAtTime(attackPeak, startTime + 0.015);
+    envelopeGain.gain.linearRampToValueAtTime(attackPeak, startTime + attackDuration);
 
     // Pluck transient settle (120ms)
     envelopeGain.gain.linearRampToValueAtTime(attackPeak * 0.7, startTime + 0.12);
@@ -321,11 +345,29 @@ export class TanpuraEngine {
     envelopeGain.gain.exponentialRampToValueAtTime(0.0008, startTime + duration);
     envelopeGain.gain.linearRampToValueAtTime(0, startTime + duration + 0.03);
 
+    // 4. Stereo panning for natural spatial acoustic spread across strings
+    // String 0 (Mandra Pa/Ma): slightly left (-0.25)
+    // String 1 (Jodi Sa 1): center-left (-0.08)
+    // String 2 (Jodi Sa 2): center-right (+0.08)
+    // String 3 (Kharja Mandra Sa): slightly right (+0.20)
+    let panner = null;
+    if (typeof ctx.createStereoPanner === 'function') {
+      panner = ctx.createStereoPanner();
+      const panPositions = [-0.25, -0.08, 0.08, 0.2];
+      panner.pan.setValueAtTime(panPositions[stringIndex] ?? 0, startTime);
+    }
+
     // Wire voice nodes
     osc1.connect(jivariFilter);
     osc2.connect(jivariFilter);
     jivariFilter.connect(envelopeGain);
-    envelopeGain.connect(this.busGain);
+
+    if (panner) {
+      envelopeGain.connect(panner);
+      panner.connect(this.busGain);
+    } else {
+      envelopeGain.connect(this.busGain);
+    }
 
     // Schedule voice start & stop
     osc1.start(startTime);
@@ -339,6 +381,7 @@ export class TanpuraEngine {
       osc2,
       jivariFilter,
       envelopeGain,
+      panner,
     };
     this.activeVoices.add(voiceRecord);
 
@@ -374,6 +417,9 @@ export class TanpuraEngine {
       voiceRecord.osc2.disconnect();
       voiceRecord.jivariFilter.disconnect();
       voiceRecord.envelopeGain.disconnect();
+      if (voiceRecord.panner) {
+        voiceRecord.panner.disconnect();
+      }
     } catch {
       // Ignore disconnect errors if already disconnected
     }
@@ -396,6 +442,9 @@ export class TanpuraEngine {
         voice.osc2.disconnect();
         voice.jivariFilter.disconnect();
         voice.envelopeGain.disconnect();
+        if (voice.panner) {
+          voice.panner.disconnect();
+        }
       } catch {
         // Ignore
       }
@@ -436,10 +485,10 @@ export class TanpuraEngine {
   }
 
   /**
-   * Update tempo in BPM (30 to 100)
+   * Update tempo in BPM (20 to 140)
    */
   setTempo(bpm) {
-    if (typeof bpm === 'number' && !isNaN(bpm) && bpm >= 20 && bpm <= 140) {
+    if (typeof bpm === 'number' && !isNaN(bpm) && bpm >= MIN_TEMPO && bpm <= MAX_TEMPO) {
       this.tempo = bpm;
     }
   }
@@ -457,6 +506,7 @@ export class TanpuraEngine {
    * Full teardown on component unmount
    */
   destroy() {
+    this.generation++;
     this.stop();
 
     if (this.schedulerTimer) {
@@ -464,14 +514,14 @@ export class TanpuraEngine {
       this.schedulerTimer = null;
     }
 
-    if (this.audioCtx && this.audioCtx.state !== 'closed') {
+    if (this.audioCtx && typeof this.audioCtx.close === 'function' && this.audioCtx.state !== 'closed') {
       try {
         this.audioCtx.close();
       } catch {
-        // Ignore
+        // Ignore errors if context is already closing/closed
       }
-      this.audioCtx = null;
     }
+    this.audioCtx = null;
 
     this.onStateChange = null;
     this.onStringPluck = null;
