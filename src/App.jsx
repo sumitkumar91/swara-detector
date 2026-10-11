@@ -4,6 +4,7 @@ import About from './About';
 import Team from './Team';
 import Tanpura from './Tanpura';
 import TimeRagaModal from './TimeRagaModal';
+import { Analytics } from '@vercel/analytics/react';
 
 function App() {
   const validTabs = ['detector', 'about', 'team'];
@@ -331,6 +332,9 @@ function App() {
         isOpen={isTimeRagaOpen}
         onClose={() => setIsTimeRagaOpen(false)}
       />
+
+      {/* Vercel Web Analytics */}
+      <Analytics />
     </div>
   );
 }
