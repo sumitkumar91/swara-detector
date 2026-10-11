@@ -295,6 +295,27 @@ describe('TanpuraEngine Audio Graph & Scheduler Execution', () => {
     assert.equal(engine.isPlaying, false);
 
     engine.destroy();
+  });
+
+  it('applies proportional detuning multiplier to secondary oscillator across octaves', async () => {
+    const engine = new TanpuraEngine({ baseFrequency: 240, tuning: 'pa' });
+    await engine.initAudioContext();
+
+    // String 0: Mandra Pa (180 Hz) with multiplier 0.002
+    engine.pluckString(180, 0, 0);
+    const voices = Array.from(engine.activeVoices);
+    const voice0 = voices[0];
+    assert.equal(voice0.osc1.frequency.value, 180);
+    assert.equal(voice0.osc2.frequency.value, 180 + (180 * 0.002));
+
+    // String 3: Kharja Sa (120 Hz) with multiplier 0.001
+    engine.pluckString(120, 0, 3);
+    const voicesAfter = Array.from(engine.activeVoices);
+    const voice3 = voicesAfter[1];
+    assert.equal(voice3.osc1.frequency.value, 120);
+    assert.equal(voice3.osc2.frequency.value, 120 + (120 * 0.001));
+
+    engine.destroy();
 
     // Restore window
     globalThis.window = originalWindow;
