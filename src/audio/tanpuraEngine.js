@@ -282,15 +282,15 @@ export class TanpuraEngine {
     }
     osc1.frequency.setValueAtTime(frequency, startTime);
 
-    // Secondary oscillator with subtle detune (~0.3 Hz) for acoustic chorus/shimmer
+    // Secondary oscillator with proportional detune for pitch-scaled acoustic chorus/shimmer
     const osc2 = ctx.createOscillator();
     if (this.tanpuraWave) {
       osc2.setPeriodicWave(this.tanpuraWave);
     } else {
       osc2.type = 'sawtooth';
     }
-    const detuneOffset = stringIndex === 3 ? 0.25 : (stringIndex === 0 ? 0.38 : 0.30);
-    osc2.frequency.setValueAtTime(frequency + detuneOffset, startTime);
+    const detuneMultiplier = stringIndex === 3 ? 0.001 : (stringIndex === 0 ? 0.002 : 0.0015);
+    osc2.frequency.setValueAtTime(frequency + (frequency * detuneMultiplier), startTime);
 
     // 2. Dynamic Jivari filter:
     // Pluck excites high harmonics, which rapidly settle and decay faster than fundamental
